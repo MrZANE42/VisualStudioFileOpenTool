@@ -6,86 +6,97 @@ using System.Windows.Forms;
 
 namespace VisualStudioFileOpenTool
 {
-	class Program
-	{
-		[STAThread]
-		static void Main(string[] args)
-		{
-			try
-			{
-				if (args != null && args.Length > 0)
-				{
-					int vsVersion;
-					int.TryParse(args[0], out vsVersion);
-					string vsString = GetVersionString(vsVersion);
-					if(string.IsNullOrEmpty(vsString))
-						return;
+    class Program
+    {
+        [STAThread]
+        static void Main(string[] args)
+        {
+            try
+            {
+                if (args != null && args.Length > 0)
+                {
+                    int vsVersion;
+                    int.TryParse(args[0], out vsVersion);
+                    string vsString = GetVersionString(vsVersion);
+                    if (string.IsNullOrEmpty(vsString))
+                        return;
 
-					String filename = args[1];
+                    String filename = args[1];
 
-					int fileline;
-					int.TryParse(args[2], out fileline);
+                    int fileline = 0;
+                    int.TryParse(args[2], out fileline);
 
-					EnvDTE80.DTE2 dte2;
-					dte2 = (EnvDTE80.DTE2)System.Runtime.InteropServices.Marshal.GetActiveObject(vsString);
-					dte2.MainWindow.Activate();
-					EnvDTE.Window w = dte2.ItemOperations.OpenFile(filename, EnvDTE.Constants.vsViewKindTextView);
-					((EnvDTE.TextSelection) dte2.ActiveDocument.Selection).GotoLine(fileline, true);
-				}
-				else
-				{
-					MessageBox.Show(GetHelpMessage());
-				}
-			}
-			catch (Exception e)
-			{
-				Console.Write(e.Message);
-			}
-		}
+                    int filecolumn = 0;
+                    if (args.Length == 4)
+                        int.TryParse(args[3], out filecolumn);
 
-		public static string GetHelpMessage()
-		{
-			var versions = new List<int>() { 2, 3, 5, 8, 10, 12, 13 };
-			string s = "Trying to open specified file at spicified line in active Visual Studio \n\n";
+                    EnvDTE80.DTE2 dte2;
+                    dte2 = (EnvDTE80.DTE2)System.Runtime.InteropServices.Marshal.GetActiveObject(vsString);
+                    dte2.MainWindow.Activate();
+                    EnvDTE.Window w = dte2.ItemOperations.OpenFile(filename, EnvDTE.Constants.vsViewKindTextView);
+                    //                    ((EnvDTE.TextSelection)dte2.ActiveDocument.Selection).GotoLine(fileline, true);
+                    ((EnvDTE.TextSelection)dte2.ActiveDocument.Selection).MoveToDisplayColumn(fileline, filecolumn);
+                }
+                else
+                {
+                    MessageBox.Show(GetHelpMessage());
+                }
+            }
+            catch (Exception e)
+            {
+                Console.Write(e.Message);
+            }
+        }
 
-			s += "usage: <version> <file path> <line number> \n\n";
+        public static string GetHelpMessage()
+        {
+            var versions = new List<int>() { 2, 3, 5, 8, 10, 12, 13, 15, 17, 19 };
+            string s = "Trying to open specified file at spicified line in active Visual Studio \n\n";
 
-			s += String.Format("{0} {1,21} \n", "Visual Studio version", "value");
-			foreach (int version in versions)
-			{
-				s += String.Format("{0}{1:D2} ", "VisualStudio 20", version);
-				s += String.Format("{0,21} \n", version);
-			}
+            s += "usage: <version> <file path> [line number] [column]\n\n";
 
-			s += "";
+            s += String.Format("{0} {1,21} \n", "Visual Studio version", "value");
+            foreach (int version in versions)
+            {
+                s += String.Format("{0}{1:D2} ", "VisualStudio 20", version);
+                s += String.Format("{0,21} \n", version);
+            }
 
-			return s;
-		}
+            s += "";
 
-		public static string GetVersionString(int visualStudioVersionNumber)
-		{
-			//  Source: http://www.mztools.com/articles/2011/MZ2011011.aspx
-			switch (visualStudioVersionNumber)
-			{
-				case 13:
-					return "VisualStudio.DTE.12.0";
-				case 12:
-					return "VisualStudio.DTE.11.0";
-				case 10:
-					return "VisualStudio.DTE.10.0";
-				case 8:
-					return "VisualStudio.DTE.9.0";
-				case 5:
-					return "VisualStudio.DTE.8.0";
-				case 3:
-					return "VisualStudio.DTE.7.1";
-				case 2:
-					return "VisualStudio.DTE.7";
-			}
+            return s;
+        }
 
-			MessageBox.Show("Don't know this Visual Studio version. \n\n" + GetHelpMessage());
+        public static string GetVersionString(int visualStudioVersionNumber)
+        {
+            //  Source: http://www.mztools.com/articles/2011/MZ2011011.aspx
+            switch (visualStudioVersionNumber)
+            {
+                case 19:
+                    return "VisualStudio.DTE.16.0";
+                case 17:
+                    return "VisualStudio.DTE.15.0";
+                case 15:
+                    return "VisualStudio.DTE.14.0";
+                case 13:
+                    return "VisualStudio.DTE.12.0";
+                case 12:
+                    return "VisualStudio.DTE.11.0";
+                case 10:
+                    return "VisualStudio.DTE.10.0";
+                case 8:
+                    return "VisualStudio.DTE.9.0";
+                case 5:
+                    return "VisualStudio.DTE.8.0";
+                case 3:
+                    return "VisualStudio.DTE.7.1";
+                case 2:
+                    return "VisualStudio.DTE.7";
+            }
 
-			return "";
-		}
-	}
+            MessageBox.Show("Don't know this Visual Studio version. \n\n" + GetHelpMessage());
+
+            return "";
+        }
+    }
 }
